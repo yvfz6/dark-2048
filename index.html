@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dark 2048</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000;
+  --board: #171719;
+  --cell: #242426;
+  --border: rgba(210,210,220,.25);
+  --gap: 10px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: #f4f4f5;
+  font-family: "Google Sans", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 18px;
+}
+.layout {
+  width: min(850px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(28px, 6vw, 75px);
+}
+h1 {
+  font-size: clamp(42px, 7vw, 68px);
+  line-height: .98;
+  letter-spacing: -3px;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+}
+h1 span { display: block; }
+.game { width: min(460px, 100%); }
+.board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #202023, #111113);
+  border: 1px solid rgba(255,255,255,.13);
+  box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.cells, .tiles {
+  position: absolute;
+  inset: 12px;
+}
+.cells {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: var(--gap);
+}
+.cell {
+  background: linear-gradient(145deg, #29292c, #222225);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.035);
+}
+.tiles { pointer-events: none; }
+.tile {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  will-change: transform;
+  transition: transform 230ms cubic-bezier(.2,.75,.25,1);
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  color: #f7f7f8;
+  text-shadow: 0 1px 8px rgba(255,255,255,.12);
+}
+.tile .face {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: var(--tile-bg, #555);
+  border: 1px solid var(--tile-border, rgba(255,255,255,.2));
+  box-shadow: 0 0 var(--glow, 8px) var(--glow-color, rgba(255,255,255,.08)),
+              inset 0 1px 0 rgba(255,255,255,.12);
+}
+.tile.spawn .face { animation: spawn .18s ease-out both; }
+.tile.merged .face { animation: merge .22s ease-out both; }
+@keyframes spawn {
+  from { transform: scale(.45); opacity: .25; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes merge {
+  0% { filter: brightness(1); }
+  45% { filter: brightness(1.65); }
+  100% { filter: brightness(1); }
+}
+.restart {
+  display: block;
+  margin: 18px auto 0;
+  padding: 11px 30px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(#080808,#080808) padding-box,
+    linear-gradient(120deg,#777,#dedee2,#666) border-box;
+  color: #eee;
+  font: 600 15px "Google Sans", sans-serif;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.restart:hover { background:
+  linear-gradient(#191919,#191919) padding-box,
+  linear-gradient(120deg,#aaa,#fff,#888) border-box;
+}
+.restart:active { transform: scale(.97); }
+.info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #929297;
+  font-size: 13px;
+  margin: 0 2px 12px;
+}
+.score { color: #eee; font-weight: 600; }
+@media (max-width: 650px) {
+  body { padding: 24px 16px; align-items: flex-start; }
+  .layout { flex-direction: column; gap: 22px; }
+  h1 {
+    text-align: center;
+    font-size: clamp(38px, 12vw, 56px);
+    letter-spacing: -2px;
+  }
+  .game { width: min(460px, 100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile { transition-duration: 1ms; }
+  .tile .face { animation-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<main class="layout">
+  <h1><span>Dark</span><span>2048</span></h1>
+  <section class="game">
+    <div class="info">
+      <span>Join the tiles. Reach 2048.</span>
+      <span class="score">Score: <b id="score">0</b></span>
+    </div>
+    <div class="board" id="board" aria-label="2048 game board">
+      <div class="cells" id="cells"></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+    <button class="restart" id="restart">Restart</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const SIZE = 4;
+  const board = document.getElementById("board");
+  const cellsEl = document.getElementById("cells");
+  const tilesEl = document.getElementById("tiles");
+  const scoreEl = document.getElementById("score");
+
+  let grid, score, busy = false, tileId = 0;
+  let tileElements = new Map();
+
+  for (let i = 0; i < 16; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cellsEl.appendChild(cell);
+  }
+
+  function emptyGrid() {
+    return Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+  }
+
+  function colorFor(value) {
+    const styles = {
+      2:    ["#454548","#77777d",8],
+      4:    ["#55555a","#85858c",10],
+      8:    ["#68686e","#a0a0a8",13],
+      16:   ["#77777f","#b1b1ba",16],
+      32:   ["#898992","#c4c4cd",20],
+      64:   ["#9b9ba5","#d0d0d9",24],
+      128:  ["#b0b0ba","#dedee6",29],
+      256:  ["#c0c0ca","#e9e9ef",34],
+      512:  ["#d0d0d8","#f1f1f5",39],
+      1024: ["#dedee5","#fafaff",45],
+      2048: ["#ededf2","#fff",52]
+    };
+    if (styles[value]) return styles[value];
+    return ["#ededf2","#fff",58];
+  }
+
+  function getPosition(row, col) {
+    const cell = cellsEl.children[row * SIZE + col];
+    const parent = tilesEl.getBoundingClientRect();
+    const rect = cell.getBoundingClientRect();
+    return {
+      x: rect.left - parent.left,
+      y: rect.top - parent.top,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+
+  function fontSize(value, width) {
+    const digits = String(value).length;
+    const ratio = digits === 1 ? .49 : digits === 2 ? .43 :
+                  digits === 3 ? .35 : digits === 4 ? .28 : .22;
+    return Math.max(15, Math.min(46, width * ratio));
+  }
+
+  function createTile(id, value, row, col, spawn = false) {
+    const tile = document.createElement("div");
+    tile.className = "tile" + (spawn ? " spawn" : "");
+    tile.dataset.id = id;
+    const face = document.createElement("div");
+    face.className = "face";
+    tile.appendChild(face);
+    tilesEl.appendChild(tile);
+    tileElements.set(id, tile);
+    updateTile(tile, value, row, col);
+    return tile;
+  }
+
+  function updateTile(tile, value, row, col) {
+    const pos = getPosition(row, col);
+    const [bg, border, glow] = colorFor(value);
+    tile.style.width = pos.width + "px";
+    tile.style.height = pos.height + "px";
+    tile.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
+    tile.style.fontSize = fontSize(value, pos.width) + "px";
+    tile.style.setProperty("--tile-bg", bg);
+    tile.style.setProperty("--tile-border", border);
+    tile.style.setProperty("--glow", glow + "px");
+    tile.style.setProperty("--glow-color", `rgba(235,235,255,${Math.min(.32, .09 + glow / 220)})`);
+    tile.firstChild.textContent = value;
+  }
+
+  function draw() {
+    const seen = new Set();
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const item = grid[r][c];
+        if (!item) continue;
+        seen.add(item.id);
+        let el = tileElements.get(item.id);
+        if (!el) el = createTile(item.id, item.value, r, c);
+        else updateTile(el, item.value, r, c);
+      }
+    }
+    for (const [id, el] of tileElements) {
+      if (!seen.has(id)) {
+        el.remove();
+        tileElements.delete(id);
+      }
+    }
+  }
+
+  function spawnTile() {
+    const empty = [];
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (!grid[r][c]) empty.push([r,c]);
+    if (!empty.length) return;
+    const [r,c] = empty[Math.floor(Math.random() * empty.length)];
+    const value = Math.random() < .9 ? 2 : 4;
+    const item = {id: ++tileId, value};
+    grid[r][c] = item;
+    createTile(item.id, item.value, r, c, true);
+  }
+
+  function start() {
+    grid = emptyGrid();
+    score = 0;
+    busy = false;
+    tileId = 0;
+    tileElements.forEach(el => el.remove());
+    tileElements.clear();
+    scoreEl.textContent = "0";
+    spawnTile();
+    spawnTile();
+    draw();
+  }
+
+  function move(direction) {
+    if (busy) return;
+    const next = emptyGrid();
+    let changed = false;
+    let gained = 0;
+    const mergedIds = [];
+
+    for (let i = 0; i < SIZE; i++) {
+      let line = [];
+      for (let j = 0; j < SIZE; j++) {
+        const r = direction === "up" ? j : direction === "down" ? 3-j : i;
+        const c = direction === "left" ? j : direction === "right" ? 3-j : i;
+        const item = grid[r][c];
+        if (item) line.push(item);
+      }
+
+      const compact = [];
+      for (let j = 0; j < line.length; j++) {
+        if (j + 1 < line.length && line[j].value === line[j+1].value) {
+          const winner = line[j];
+          const loser = line[j+1];
+          const merged = {id: winner.id, value: winner.value * 2};
+          compact.push(merged);
+          mergedIds.push(winner.id);
+          mergedIds.push(loser.id);
+          gained += merged.value;
+          j++;
+        } else {
+          compact.push(line[j]);
+        }
+      }
+
+      for (let j = 0; j < compact.length; j++) {
+        const r = direction === "up" ? j : direction === "down" ? 3-j : i;
+        const c = direction === "left" ? j : direction === "right" ? 3-j : i;
+        next[r][c] = compact[j];
+        const oldR = direction === "up" || direction === "down" ? grid.findIndex(row => row.includes(compact[j])) : i;
+        const oldC = direction === "left" || direction === "right" ? grid[i].indexOf(compact[j]) : i;
+        if (oldR !== r || oldC !== c) changed = true;
+      }
+      if (compact.length !== line.length) changed = true;
+    }
+
+    if (!changed) return;
+
+    busy = true;
+    const losers = new Set();
+    for (const id of mergedIds) {
+      if (!next.some(row => row.some(item => item && item.id === id))) losers.add(id);
+    }
+
+    // Move all existing tiles to their exact destinations.
+    grid = next;
+    draw();
+
+    // Animate merged-away tiles toward their destination, then remove them.
+    for (const id of losers) {
+      const el = tileElements.get(id);
+      if (!el) continue;
+      const destination = next.flat().find(item => item && mergedIds.includes(item.id));
+      if (destination) {
+        const target = next.findIndex(row => row.includes(destination));
+        const col = next[target].indexOf(destination);
+        const pos = getPosition(target, col);
+        const parent = tilesEl.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
+        const x = rect.left - parent.left;
+        const y = rect.top - parent.top;
+        el.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
+        el.style.opacity = "0";
+      }
+    }
+
+    // Apply merge styling to surviving merged tiles.
+    for (const id of mergedIds) {
+      const el = tileElements.get(id);
+      if (el && next.some(row => row.some(item => item && item.id === id))) {
+        el.classList.add("merged");
+        const item = next.flat().find(x => x && x.id === id);
+        const row = next.findIndex(x => x.includes(item));
+        const col = next[row].indexOf(item);
+        updateTile(el, item.value, row, col);
+      }
+    }
+
+    score += gained;
+    scoreEl.textContent = score;
+
+    setTimeout(() => {
+      for (const id of losers) {
+        const el = tileElements.get(id);
+        if (el) el.remove();
+        tileElements.delete(id);
+      }
+      spawnTile();
+      draw();
+      busy = false;
+      if (!canMove()) {
+        setTimeout(() => alert("Game over! Your score: " + score), 100);
+      }
+    }, 245);
+  }
+
+  function canMove() {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (!grid[r][c]) return true;
+        if (r < 3 && grid[r][c].value === grid[r+1][c].value) return true;
+        if (c < 3 && grid[r][c].value === grid[r][c+1].value) return true;
+      }
+    }
+    return false;
+  }
+
+  document.addEventListener("keydown", e => {
+    const keys = {
+      ArrowUp: "up", w: "up", W: "up",
+      ArrowDown: "down", s: "down", S: "down",
+      ArrowLeft: "left", a: "left", A: "left",
+      ArrowRight: "right", d: "right", D: "right"
+    };
+    if (keys[e.key]) {
+      e.preventDefault();
+      move(keys[e.key]);
+    }
+  });
+
+  let startX = 0, startY = 0;
+  board.addEventListener("pointerdown", e => {
+    startX = e.clientX;
+    startY = e.clientY;
+    board.setPointerCapture(e.pointerId);
+  });
+  board.addEventListener("pointerup", e => {
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? "right" : "left");
+    else move(dy > 0 ? "down" : "up");
+  });
+
+  document.getElementById("restart").addEventListener("click", start);
+
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(() => {
+      if (!busy) draw();
+    }).observe(board);
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
