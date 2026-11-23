@@ -8,12 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; }
-
 :root {
-  --gap: clamp(4px, 1.5vmin, 10px);
-  --board-size:  min(80vw, 60vh);
+  --gap: clamp(5px, 1.5vmin, 10px);
+  --board-bg: #171719;
 }
+* { box-sizing: border-box; }
 
 html, body {
   width: 100%;
@@ -23,9 +22,8 @@ html, body {
   overflow: hidden;
   background: #000;
 }
-
 body {
-  color: #f5f5f5;
+  color: #f5f5f6;
   font-family: "Google Sans", Arial, sans-serif;
   display: grid;
   place-items: center;
@@ -34,105 +32,102 @@ body {
     max(9px, env(safe-area-inset-right))
     max(7px, env(safe-area-inset-bottom))
     max(9px, env(safe-area-inset-left));
+  overscroll-behavior: none;
 }
 
 .layout {
-  width: 100%;
+  width: min(100%, 920px);
   height: 100%;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: clamp(18px, 5vw, 65px);
-  min-height: 0;
 }
 
 h1 {
-  flex: 0 0 auto;
   margin: 0;
-  font-size: clamp(38px, 7vw, 68px);
-  line-height: .95;
-  letter-spacing: -.06em;
+  font-size: clamp(38px, 7vw, 70px);
+  line-height: .94;
+  letter-spacing: -.065em;
   font-weight: 700;
+  flex: 0 0 auto;
 }
 h1 span { display: block; }
 
 .game {
-  width: var(--board-size);
-  max-width: 100%;
+  width: min( min(64vw, 70vh), 460px);
   flex: 0 1 auto;
   min-width: 0;
 }
 
 .info {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
-  margin: 0 2px 9px;
-  color: #99999f;
+  color: #929297;
   font-size: clamp(10px, 1.7vmin, 13px);
-  white-space: nowrap;
+  margin: 0 2px clamp(6px, 1.4vmin, 11px);
 }
-
-.scores {
+.scoreline {
   display: flex;
   gap: 12px;
-  color: #eee;
-  font-weight: 600;
+  white-space: nowrap;
 }
+.scoreline b { color: #eee; font-weight: 600; }
 
 .board {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  padding: 2.6%;
-  border-radius: clamp(11px, 2.8vmin, 18px);
+  padding: 10px;
+  border-radius: clamp(12px, 2.8vmin, 18px);
   background: linear-gradient(145deg, #202023, #111113);
   border: 1px solid rgba(255,255,255,.17);
-  box-shadow: 0 18px 55px rgba(0,0,0,.55),
-              inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
   overflow: hidden;
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
 }
-
 .cells, .tiles {
   position: absolute;
-  inset: 2.6%;
+  inset: 10px;
 }
-
 .cells {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   gap: var(--gap);
 }
-
 .cell {
+  min-width: 0;
+  min-height: 0;
   background: linear-gradient(145deg, #29292c, #222225);
-  border: 1px solid rgba(220,220,230,.30);
-  border-radius: clamp(5px, 1.4vmin, 10px);
+  border: 1px solid rgba(220,220,230,.32);
+  border-radius: clamp(5px, 1.5vmin, 10px);
   box-shadow: inset 0 1px 2px rgba(255,255,255,.035);
 }
-
 .tiles { pointer-events: none; }
 
 .tile {
   position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: clamp(5px, 1.4vmin, 10px);
-  will-change: transform, opacity;
+  border-radius: clamp(5px, 1.5vmin, 10px);
+  will-change: transform;
   transition:
     transform 235ms cubic-bezier(.35,.05,.25,1),
     opacity 180ms ease;
   font-weight: 700;
   letter-spacing: -1.5px;
-  color: #f8f8fa;
-  text-shadow: 0 1px 7px rgba(255,255,255,.12);
+  color: #f7f7f8;
+  text-shadow: 0 1px 8px rgba(255,255,255,.12);
 }
-
 .tile .face {
   width: 100%;
   height: 100%;
@@ -140,44 +135,33 @@ h1 span { display: block; }
   align-items: center;
   justify-content: center;
   border-radius: inherit;
-  background: var(--tile-bg);
-  border: 1px solid var(--tile-border);
+  background: var(--tile-bg, #555);
+  border: 1px solid var(--tile-border, rgba(255,255,255,.2));
   box-shadow:
-    0 0 var(--glow) var(--glow-color),
+    0 0 var(--glow, 8px) var(--glow-color, rgba(255,255,255,.08)),
     inset 0 1px 0 rgba(255,255,255,.12);
 }
-
-.tile.dark-text {
-  color: #171719;
-  text-shadow: none;
-}
-
-.tile.spawn .face {
-  animation: spawn .2s ease-out both;
-}
-
-.tile.merged .face {
-  animation: merge .22s ease-out both;
-}
+.tile.light-text { color: #111114; text-shadow: none; }
+.tile.spawn .face { animation: spawn .2s ease-out both; }
+.tile.merged .face { animation: merge .22s ease-out both; }
 
 @keyframes spawn {
-  from { transform: scale(.45); opacity: .2; }
+  from { transform: scale(.35); opacity: .15; }
   to { transform: scale(1); opacity: 1; }
 }
 @keyframes merge {
   0% { filter: brightness(1); }
-  45% { filter: brightness(1.35); }
+  45% { filter: brightness(1.45); }
   100% { filter: brightness(1); }
 }
 
-.buttons {
+.controls {
   display: flex;
   justify-content: center;
   margin-top: clamp(8px, 1.8vmin, 17px);
 }
-
-.restart, .modal-btn {
-  padding: clamp(7px, 1.5vmin, 11px) clamp(20px, 4vw, 30px);
+.restart {
+  padding: clamp(7px, 1.5vmin, 11px) clamp(22px, 4vw, 32px);
   border: 1px solid transparent;
   border-radius: 10px;
   background:
@@ -186,149 +170,140 @@ h1 span { display: block; }
   color: #eee;
   font: 600 clamp(12px, 1.8vmin, 15px) "Google Sans", sans-serif;
   cursor: pointer;
-  transition: transform .15s, background .2s;
 }
-
-.restart:hover, .modal-btn:hover {
+.restart:hover {
   background:
     linear-gradient(#191919,#191919) padding-box,
     linear-gradient(120deg,#aaa,#fff,#888) border-box;
 }
-.restart:active, .modal-btn:active { transform: scale(.97); }
+.restart:active { transform: scale(.97); }
 
 /* Victory overlay */
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background: rgba(0,0,0,.78);
-  backdrop-filter: blur(9px);
-  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity .25s ease, visibility .25s;
+  transition: opacity .25s ease, visibility .25s ease;
 }
 .overlay.show {
   opacity: 1;
   visibility: visible;
 }
-
 .modal {
   width: min(360px, 100%);
   padding: 32px 24px;
   text-align: center;
-  background: linear-gradient(145deg,#202023,#101012);
+  background: linear-gradient(145deg,#242427,#111113);
   border: 1px solid rgba(255,255,255,.2);
   border-radius: 20px;
-  box-shadow: 0 20px 70px rgba(0,0,0,.6);
+  box-shadow: 0 20px 80px rgba(0,0,0,.6);
   transform: translateY(12px) scale(.97);
   transition: transform .25s ease;
 }
-.overlay.show .modal {
-  transform: translateY(0) scale(1);
-}
+.overlay.show .modal { transform: translateY(0) scale(1); }
 .modal h2 {
-  font-size: clamp(36px, 9vw, 48px);
-  letter-spacing: -2px;
   margin: 0 0 8px;
+  font-size: clamp(34px, 8vw, 46px);
+  letter-spacing: -2px;
 }
-.modal p {
-  color: #aaaab0;
-  font-size: 14px;
-  margin: 0 0 23px;
-}
-.modal-actions {
+.modal p { color: #aaaab0; margin: 0 0 22px; }
+.modal-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.modal-btn {
+.modal-buttons button {
   width: 100%;
-  padding: 12px 18px;
-  font-size: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: #303034;
+  color: white;
+  font: 600 14px "Google Sans", sans-serif;
+  cursor: pointer;
 }
-.modal-btn.primary {
-  background:
-    linear-gradient(#eee,#eee) padding-box,
-    linear-gradient(120deg,#fff,#999) border-box;
+.modal-buttons button.primary {
   color: #111;
+  background: #eeeef1;
+  border-color: #eeeef1;
 }
-.modal-btn.primary:hover {
-  background:
-    linear-gradient(#fff,#fff) padding-box,
-    linear-gradient(120deg,#fff,#bbb) border-box;
-}
+.modal-buttons button:active { transform: scale(.98); }
 
-/* Phones and portrait tablets */
+/* Portrait phones and tablets */
 @media (max-width: 700px) {
   .layout {
     flex-direction: column;
-    gap: clamp(5px, 1.5vh, 14px);
+    gap: clamp(5px, 1.4dvh, 13px);
+    justify-content: center;
   }
-
   h1 {
-    font-size: clamp(25px, 6vh, 39px);
-    line-height: .95;
+    font-size: clamp(24px, min(7vw, 5.5dvh), 42px);
+    line-height: 1;
     letter-spacing: -.05em;
     text-align: center;
   }
-
   h1 span { display: inline; }
   h1 span + span::before { content: " "; }
-
   .game {
-    width: var(--board-size);
+    width: min(90vw, 72dvh, 460px);
     flex: 0 1 auto;
   }
-
-  .info { margin-bottom: 7px; }
-  .buttons { margin-top: 8px; }
 }
 
 /* Short landscape screens */
 @media (max-height: 520px) {
-  .layout { gap: 18px; }
-  h1 { font-size: clamp(23px, 6vh, 38px); }
+  .layout { gap: 16px; }
+  h1 { font-size: clamp(24px, 6dvh, 38px); }
+  .game { width: min( min(65vw, 83dvh), 390px); }
   .info { margin-bottom: 5px; }
-  .buttons { margin-top: 6px; }
-  .restart { padding: 6px 18px; }
+  .controls { margin-top: 6px; }
+  .restart { padding: 6px 20px; }
 }
-
 @media (max-width: 700px) and (max-height: 520px) {
-  .layout { gap: 4px; }
-  h1 { font-size: clamp(20px, 5vh, 28px); }
+  .layout { flex-direction: row; gap: 12px; }
+  h1 {
+    font-size: clamp(22px, 5dvh, 34px);
+    text-align: left;
+  }
+  h1 span { display: block; }
+  h1 span + span::before { content: none; }
+  .game { width: min( min(70vw, 85dvh), 390px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile, .overlay, .modal { transition-duration: 1ms; }
+  .tile { transition-duration: 1ms; }
   .tile .face { animation-duration: 1ms !important; }
 }
 </style>
 </head>
 <body>
-
 <main class="layout">
   <h1><span>Dark</span><span>2048</span></h1>
 
   <section class="game">
     <div class="info">
       <span>Join the tiles. Reach 2048.</span>
-      <div class="scores">
+      <span class="scoreline">
         <span>Score: <b id="score">0</b></span>
         <span>Best: <b id="best">0</b></span>
-      </div>
+      </span>
     </div>
 
-    <div class="board" id="board">
+    <div class="board" id="board" aria-label="2048 game board">
       <div class="cells" id="cells"></div>
       <div class="tiles" id="tiles"></div>
     </div>
 
-    <div class="buttons">
+    <div class="controls">
       <button class="restart" id="restart">Restart</button>
     </div>
   </section>
@@ -337,16 +312,18 @@ h1 span { display: block; }
 <div class="overlay" id="winOverlay">
   <div class="modal">
     <h2>You win!</h2>
-    <p>You reached 2048! What would you like to do?</p>
-    <div class="modal-actions">
-      <button class="modal-btn primary" id="continueBtn">Continue</button>
-      <button class="modal-btn" id="playAgainBtn">Play Again</button>
+    <p>You reached 2048. What would you like to do?</p>
+    <div class="modal-buttons">
+      <button class="primary" id="playAgain">Play Again</button>
+      <button id="continueGame">Continue playing</button>
     </div>
   </div>
 </div>
 
 <script>
 (() => {
+  "use strict";
+
   const SIZE = 4;
   const board = document.getElementById("board");
   const cellsEl = document.getElementById("cells");
@@ -355,44 +332,35 @@ h1 span { display: block; }
   const bestEl = document.getElementById("best");
   const overlay = document.getElementById("winOverlay");
 
-  let grid, score = 0, best = 0;
-  let busy = false;
+  let grid;
+  let score = 0;
+  let best = loadBest();
   let tileId = 0;
+  let busy = false;
   let won = false;
-  const tileElements = new Map();
+  let inputQueue = [];
+  let tileElements = new Map();
+  let gameOverShown = false;
 
-  try {
-    best = Number(localStorage.getItem("dark2048-best")) || 0;
-  } catch (_) {}
   bestEl.textContent = best;
 
-  // Calculate the board from the actual available viewport.
-  function fitLayout() {
-    const width = window.innerWidth;
-    const height = window.visualViewport
-      ? window.visualViewport.height
-      : window.innerHeight;
+  function loadBest() {
+    try { return Number(localStorage.getItem("dark2048-best")) || 0; }
+    catch (_) { return 0; }
+  }
 
-    const mobile = width <= 700;
-    let size;
+  function saveBest() {
+    try { localStorage.setItem("dark2048-best", String(best)); }
+    catch (_) {}
+  }
 
-    if (mobile) {
-      const titleHeight = Math.min(45, Math.max(25, height * .065));
-      const infoHeight = 25;
-      const buttonHeight = 42;
-      const spacing = 37;
-      const safeSpace = 24;
-      const availableHeight = height - titleHeight - infoHeight -
-                              buttonHeight - spacing - safeSpace;
-      size = Math.min(width - 24, availableHeight, 460);
-    } else {
-      size = Math.min(width * .52, height * .78, 460);
+  function updateScore() {
+    scoreEl.textContent = score;
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best;
+      saveBest();
     }
-
-    size = Math.max(150, size);
-    document.documentElement.style.setProperty("--board-size", size + "px");
-
-    if (grid && !busy) draw();
   }
 
   for (let i = 0; i < 16; i++) {
@@ -406,26 +374,28 @@ h1 span { display: block; }
   }
 
   function colorFor(value) {
-    const styles = {
+    const colors = {
       2:    ["#454548","#77777d",8,false],
       4:    ["#55555a","#85858c",10,false],
       8:    ["#68686e","#a0a0a8",13,false],
       16:   ["#77777f","#b1b1ba",16,false],
       32:   ["#898992","#c4c4cd",20,false],
       64:   ["#9b9ba5","#d0d0d9",24,false],
-      128:  ["#b0b0ba","#dedee6",29,false],
-      256:  ["#c0c0ca","#e9e9ef",34,false],
-      512:  ["#d0d0d8","#f1f1f5",39,true],
-      1024: ["#dedee5","#fafaff",45,true],
-      2048: ["#ededf2","#fff",52,true]
+      128:  ["#c0c0c8","#e2e2e8",29,true],
+      256:  ["#ceced5","#e9e9ef",34,true],
+      512:  ["#d8d8df","#f0f0f4",39,true],
+      1024: ["#e3e3e9","#f7f7fa",45,true],
+      2048: ["#eeeeF2","#fff",52,true]
     };
-    return styles[value] || ["#ededf2","#fff",58,true];
+    return colors[value] || ["#eeeeF2","#fff",58,true];
   }
 
+  // Measure the actual cell, not an assumed grid position.
   function getPosition(row, col) {
     const cell = cellsEl.children[row * SIZE + col];
     const parent = tilesEl.getBoundingClientRect();
     const rect = cell.getBoundingClientRect();
+
     return {
       x: rect.left - parent.left,
       y: rect.top - parent.top,
@@ -436,71 +406,92 @@ h1 span { display: block; }
 
   function fontSize(value, width) {
     const digits = String(value).length;
-    const ratio = digits === 1 ? .53 :
-                  digits === 2 ? .47 :
-                  digits === 3 ? .39 :
+    const ratio = digits === 1 ? .55 :
+                  digits === 2 ? .49 :
+                  digits === 3 ? .40 :
                   digits === 4 ? .32 : .25;
     return Math.max(12, Math.min(48, width * ratio));
   }
 
-  function updateTile(el, value, row, col) {
-    const p = getPosition(row, col);
-    const [bg, border, glow, darkText] = colorFor(value);
+  function styleTile(el, value, row, col) {
+    const pos = getPosition(row, col);
+    const [bg, border, glow, lightText] = colorFor(value);
 
-    el.style.width = p.width + "px";
-    el.style.height = p.height + "px";
-    el.style.transform = `translate3d(${p.x}px,${p.y}px,0)`;
-    el.style.fontSize = fontSize(value, p.width) + "px";
+    el.style.width = pos.width + "px";
+    el.style.height = pos.height + "px";
+    el.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
+    el.style.fontSize = fontSize(value, pos.width) + "px";
     el.style.setProperty("--tile-bg", bg);
     el.style.setProperty("--tile-border", border);
     el.style.setProperty("--glow", glow + "px");
-    el.style.setProperty("--glow-color",
-      `rgba(235,235,255,${Math.min(.32,.09 + glow / 220)})`);
+    el.style.setProperty(
+      "--glow-color",
+      `rgba(235,235,255,${Math.min(.32, .09 + glow / 220)})`
+    );
 
-    el.classList.toggle("dark-text", darkText);
+    el.classList.toggle("light-text", lightText);
     el.firstChild.textContent = value;
   }
 
-  function createTile(item, row, col, spawn = false) {
+  function createTile(item, row, col, animate = false) {
     const el = document.createElement("div");
-    el.className = "tile" + (spawn ? " spawn" : "");
+    el.className = "tile" + (animate ? " spawn" : "");
     el.dataset.id = item.id;
 
     const face = document.createElement("div");
     face.className = "face";
     el.appendChild(face);
+
+    // Put the tile in its correct cell before it becomes visible.
+    // No default top-left flash.
+    el.style.transition = "none";
     tilesEl.appendChild(el);
     tileElements.set(item.id, el);
+    styleTile(el, item.value, row, col);
 
-    updateTile(el, item.value, row, col);
+    if (animate) {
+      el.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        el.style.transition = "";
+      });
+    }
     return el;
   }
 
-  function draw() {
+  function render(preserve = new Set()) {
+    const present = new Set();
+
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
         const item = grid[r][c];
         if (!item) continue;
 
+        present.add(item.id);
         let el = tileElements.get(item.id);
+
         if (!el) {
-          el = createTile(item, r, c);
+          createTile(item, r, c);
         } else {
-          updateTile(el, item.value, r, c);
+          styleTile(el, item.value, r, c);
         }
+      }
+    }
+
+    for (const [id, el] of tileElements) {
+      if (!present.has(id) && !preserve.has(id)) {
+        el.remove();
+        tileElements.delete(id);
       }
     }
   }
 
   function spawnTile() {
     const empty = [];
-
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
         if (!grid[r][c]) empty.push([r,c]);
       }
     }
-
     if (!empty.length) return;
 
     const [r,c] = empty[Math.floor(Math.random() * empty.length)];
@@ -513,62 +504,68 @@ h1 span { display: block; }
     createTile(item, r, c, true);
   }
 
-  function updateScore() {
-    scoreEl.textContent = score;
-
-    if (score > best) {
-      best = score;
-      bestEl.textContent = best;
-      try {
-        localStorage.setItem("dark2048-best", String(best));
-      } catch (_) {}
-    }
-  }
-
   function startGame() {
     grid = emptyGrid();
     score = 0;
+    tileId = 0;
     busy = false;
     won = false;
-    tileId = 0;
-    overlay.classList.remove("show");
+    gameOverShown = false;
+    inputQueue = [];
 
-    tileElements.forEach(el => el.remove());
+    for (const el of tileElements.values()) el.remove();
     tileElements.clear();
 
+    overlay.classList.remove("show");
     updateScore();
-    spawnTile();
-    spawnTile();
-    draw();
-    fitLayout();
+
+    // Wait until layout is measured, then create tiles in their real cells.
+    requestAnimationFrame(() => {
+      spawnTile();
+      spawnTile();
+    });
   }
 
-  function checkWin() {
-    if (won) return;
-
-    const reached = grid.some(row =>
-      row.some(item => item && item.value >= 2048)
-    );
-
-    if (reached) {
-      won = true;
-      setTimeout(() => overlay.classList.add("show"), 260);
-    }
+  function hasWon() {
+    return grid.some(row => row.some(item => item && item.value >= 2048));
   }
 
   function canMove() {
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        if (!grid[r][c]) return true;
-
-        if (r < 3 && grid[r][c].value === grid[r+1][c].value)
-          return true;
-
-        if (c < 3 && grid[r][c].value === grid[r][c+1].value)
-          return true;
+        const item = grid[r][c];
+        if (!item) return true;
+        if (r < 3 && grid[r+1][c]?.value === item.value) return true;
+        if (c < 3 && grid[r][c+1]?.value === item.value) return true;
       }
     }
     return false;
+  }
+
+  function showGameOver() {
+    if (gameOverShown) return;
+    gameOverShown = true;
+    setTimeout(() => {
+      if (!canMove()) {
+        const modal = overlay.querySelector(".modal");
+        modal.querySelector("h2").textContent = "Game over";
+        modal.querySelector("p").textContent = "Final score: " + score;
+        document.getElementById("continueGame").style.display = "none";
+        document.getElementById("playAgain").textContent = "Play Again";
+        overlay.classList.add("show");
+      }
+    }, 80);
+  }
+
+  function requestMove(direction) {
+    if (overlay.classList.contains("show")) return;
+
+    if (busy) {
+      // Keep a short queue so fast swipes/keypresses are not discarded.
+      if (inputQueue.length < 3) inputQueue.push(direction);
+      return;
+    }
+    move(direction);
   }
 
   function move(direction) {
@@ -577,128 +574,139 @@ h1 span { display: block; }
     const next = emptyGrid();
     let changed = false;
     let gained = 0;
-    const mergePairs = [];
+    const merges = [];
 
     for (let i = 0; i < SIZE; i++) {
-      const line = [];
+      const coords = [];
 
       for (let j = 0; j < SIZE; j++) {
-        const r = direction === "up" ? j :
-                  direction === "down" ? 3-j : i;
-        const c = direction === "left" ? j :
-                  direction === "right" ? 3-j : i;
-
-        if (grid[r][c]) line.push(grid[r][c]);
+        let r, c;
+        if (direction === "up") { r = j; c = i; }
+        else if (direction === "down") { r = 3-j; c = i; }
+        else if (direction === "left") { r = i; c = j; }
+        else { r = i; c = 3-j; }
+        coords.push([r,c]);
       }
 
+      const line = coords
+        .map(([r,c]) => grid[r][c])
+        .filter(Boolean);
+
       const compact = [];
-
       for (let j = 0; j < line.length; j++) {
-        if (j + 1 < line.length &&
-            line[j].value === line[j+1].value) {
-          const winner = line[j];
-          const loser = line[j+1];
+        const current = line[j];
+        const following = line[j+1];
 
-          compact.push({
-            id: winner.id,
-            value: winner.value * 2
+        if (following && current.value === following.value) {
+          const merged = {
+            id: current.id,
+            value: current.value * 2
+          };
+          compact.push(merged);
+          merges.push({
+            winner: current.id,
+            loser: following.id,
+            value: merged.value
           });
-
-          mergePairs.push({
-            winner: winner.id,
-            loser: loser.id
-          });
-
-          gained += winner.value * 2;
+          gained += merged.value;
           j++;
         } else {
-          compact.push(line[j]);
+          compact.push(current);
         }
       }
 
       for (let j = 0; j < compact.length; j++) {
-        const r = direction === "up" ? j :
-                  direction === "down" ? 3-j : i;
-        const c = direction === "left" ? j :
-                  direction === "right" ? 3-j : i;
-
+        const [r,c] = coords[j];
         next[r][c] = compact[j];
-
-        if (grid[r][c] !== compact[j]) changed = true;
       }
 
-      if (compact.length !== line.length) changed = true;
+      for (let j = 0; j < SIZE; j++) {
+        const [r,c] = coords[j];
+        if (grid[r][c]?.id !== next[r][c]?.id) changed = true;
+      }
     }
 
     if (!changed) return;
 
     busy = true;
 
-    // Move disappearing merge tiles toward their matching destination.
-    for (const pair of mergePairs) {
-      const loser = tileElements.get(pair.loser);
-      if (!loser) continue;
+    const loserIds = new Set(merges.map(m => m.loser));
+    const oldRects = new Map();
 
-      const row = next.findIndex(line =>
-        line.some(item => item && item.id === pair.winner)
-      );
-      const col = next[row].findIndex(item =>
-        item && item.id === pair.winner
-      );
-
-      const p = getPosition(row, col);
-      loser.style.transform =
-        `translate3d(${p.x}px,${p.y}px,0)`;
-      loser.style.opacity = "0";
+    // Capture the old locations before changing the grid.
+    for (const [id, el] of tileElements) {
+      oldRects.set(id, el.getBoundingClientRect());
     }
 
+    // Keep merged-away tiles temporarily so they can glide into their partner.
     grid = next;
+    render(loserIds);
 
-    for (const pair of mergePairs) {
-      const row = grid.findIndex(line =>
-        line.some(item => item && item.id === pair.winner)
-      );
-      const col = grid[row].findIndex(item =>
-        item && item.id === pair.winner
-      );
-      const item = grid[row][col];
-      const el = tileElements.get(pair.winner);
+    for (const merge of merges) {
+      const winner = tileElements.get(merge.winner);
+      const loser = tileElements.get(merge.loser);
 
-      if (el) {
-        updateTile(el, item.value, row, col);
-        el.classList.remove("merged");
-        void el.offsetWidth;
-        el.classList.add("merged");
+      const row = next.findIndex(line => line.some(x => x && x.id === merge.winner));
+      const col = next[row].findIndex(x => x && x.id === merge.winner);
+
+      if (winner) {
+        const item = next[row][col];
+        styleTile(winner, item.value, row, col);
+        winner.classList.remove("merged");
+        void winner.offsetWidth;
+        winner.classList.add("merged");
+      }
+
+      if (loser) {
+        const pos = getPosition(row, col);
+        loser.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
+        loser.style.opacity = "0";
       }
     }
 
-    draw();
     score += gained;
     updateScore();
 
+    const duration = 250;
+
     setTimeout(() => {
-      for (const pair of mergePairs) {
-        const el = tileElements.get(pair.loser);
+      for (const id of loserIds) {
+        const el = tileElements.get(id);
         if (el) el.remove();
-        tileElements.delete(pair.loser);
+        tileElements.delete(id);
       }
 
+      render();
       spawnTile();
-      draw();
+
       busy = false;
 
-      checkWin();
+      if (!won && hasWon()) {
+        won = true;
+        inputQueue = [];
+        document.getElementById("continueGame").style.display = "";
+        document.querySelector("#winOverlay h2").textContent = "You win!";
+        document.querySelector("#winOverlay p").textContent =
+          "You reached 2048! Keep going or start a new game.";
+        document.getElementById("playAgain").textContent = "Play Again";
+        overlay.classList.add("show");
+        return;
+      }
 
       if (!canMove()) {
-        setTimeout(() => {
-          if (!overlay.classList.contains("show")) {
-            alert("Game over! Your score: " + score);
-          }
-        }, 100);
+        inputQueue = [];
+        showGameOver();
+        return;
       }
-    }, 245);
+
+      if (inputQueue.length) {
+        const nextDirection = inputQueue.shift();
+        requestAnimationFrame(() => move(nextDirection));
+      }
+    }, duration);
   }
 
+  // Keyboard controls.
   document.addEventListener("keydown", e => {
     const keys = {
       ArrowUp: "up", w: "up", W: "up",
@@ -707,58 +715,97 @@ h1 span { display: block; }
       ArrowRight: "right", d: "right", D: "right"
     };
 
-    if (keys[e.key]) {
-      e.preventDefault();
-      move(keys[e.key]);
-    }
-  });
+    const direction = keys[e.key];
+    if (!direction) return;
 
-  let startX = 0, startY = 0;
+    e.preventDefault();
+    if (e.repeat) return;
+    requestMove(direction);
+  }, {passive: false});
+
+  // Pointer swipe handling: supports touch, pen, and mouse.
+  let pointerStart = null;
+  let pointerLast = null;
+  let pointerId = null;
 
   board.addEventListener("pointerdown", e => {
-    startX = e.clientX;
-    startY = e.clientY;
-    board.setPointerCapture(e.pointerId);
-  });
+    if (e.pointerType === "mouse" && e.button !== 0) return;
 
-  board.addEventListener("pointerup", e => {
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    pointerId = e.pointerId;
+    pointerStart = {x: e.clientX, y: e.clientY};
+    pointerLast = pointerStart;
 
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 22) return;
+    try { board.setPointerCapture(e.pointerId); } catch (_) {}
+    e.preventDefault();
+  }, {passive: false});
+
+  board.addEventListener("pointermove", e => {
+    if (pointerId !== e.pointerId || !pointerStart) return;
+    pointerLast = {x: e.clientX, y: e.clientY};
+    e.preventDefault();
+  }, {passive: false});
+
+  function finishSwipe(e) {
+    if (pointerId !== null && e.pointerId !== pointerId) return;
+    if (!pointerStart) return;
+
+    const end = pointerLast || {x: e.clientX, y: e.clientY};
+    const dx = end.x - pointerStart.x;
+    const dy = end.y - pointerStart.y;
+
+    pointerStart = null;
+    pointerLast = null;
+    pointerId = null;
+
+    const distance = Math.hypot(dx, dy);
+    if (distance < 8) return;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      move(dx > 0 ? "right" : "left");
+      requestMove(dx > 0 ? "right" : "left");
     } else {
-      move(dy > 0 ? "down" : "up");
+      requestMove(dy > 0 ? "down" : "up");
+    }
+    e.preventDefault();
+  }
+
+  board.addEventListener("pointerup", finishSwipe, {passive: false});
+  board.addEventListener("pointercancel", finishSwipe, {passive: false});
+  board.addEventListener("lostpointercapture", () => {
+    pointerStart = null;
+    pointerLast = null;
+    pointerId = null;
+  });
+
+  // Restart and victory choices.
+  document.getElementById("restart").addEventListener("click", startGame);
+  document.getElementById("playAgain").addEventListener("click", startGame);
+
+  document.getElementById("continueGame").addEventListener("click", () => {
+    overlay.classList.remove("show");
+    won = true;
+    busy = false;
+    if (inputQueue.length) {
+      const direction = inputQueue.shift();
+      requestAnimationFrame(() => move(direction));
     }
   });
 
-  document.getElementById("restart").addEventListener("click", startGame);
-
-  document.getElementById("continueBtn").addEventListener("click", () => {
-    overlay.classList.remove("show");
-    // The game continues beyond 2048.
-  });
-
-  document.getElementById("playAgainBtn").addEventListener("click", startGame);
-
-  window.addEventListener("resize", fitLayout);
-  window.addEventListener("orientationchange", () => {
-    setTimeout(fitLayout, 100);
-  });
-
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", fitLayout);
+  // Recalculate every tile after rotation or resizing.
+  let resizeFrame = 0;
+  function resizeBoard() {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      if (!grid || busy) return;
+      render();
+    });
   }
 
   if ("ResizeObserver" in window) {
-    new ResizeObserver(() => {
-      if (grid && !busy) draw();
-    }).observe(board);
+    new ResizeObserver(resizeBoard).observe(board);
+  } else {
+    window.addEventListener("resize", resizeBoard);
   }
 
-  fitLayout();
   startGame();
 })();
 </script>
