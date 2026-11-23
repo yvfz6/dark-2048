@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dark 2048</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,56 +10,86 @@
 <style>
 :root {
   --bg: #000;
-  --board: #171719;
-  --cell: #242426;
-  --border: rgba(210,210,220,.25);
-  --gap: 10px;
+  --gap: clamp(5px, 1.5vmin, 10px);
 }
 * { box-sizing: border-box; }
-body {
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   margin: 0;
-  min-height: 100vh;
+  overflow: hidden;
   background: var(--bg);
+}
+
+body {
   color: #f4f4f5;
   font-family: "Google Sans", Arial, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 18px;
+  display: grid;
+  place-items: center;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    max(10px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom))
+    max(10px, env(safe-area-inset-left));
 }
+
 .layout {
-  width: min(850px, 100%);
+  width: min(100%, 900px);
+  height: 100%;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(28px, 6vw, 75px);
+  gap: clamp(18px, 5vw, 65px);
 }
+
 h1 {
-  font-size: clamp(42px, 7vw, 68px);
-  line-height: .98;
-  letter-spacing: -3px;
-  font-weight: 700;
   margin: 0;
-  white-space: nowrap;
+  font-size: clamp(34px, min(7vw, 9vh), 68px);
+  line-height: .96;
+  letter-spacing: -.055em;
+  font-weight: 700;
+  flex: 0 0 auto;
 }
 h1 span { display: block; }
-.game { width: min(460px, 100%); }
+
+.game {
+  --board-size: min( min( min(66vw, 66vh), 460px), 460px);
+  width: var(--board-size);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: #929297;
+  font-size: clamp(10px, 1.7vmin, 13px);
+  margin: 0 2px clamp(6px, 1.4vmin, 12px);
+}
+.score { color: #eee; font-weight: 600; white-space: nowrap; }
+
 .board {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  padding: 12px;
-  border-radius: 18px;
+  padding: clamp(7px, 2.5%, 12px);
+  border-radius: clamp(12px, 2.8vmin, 18px);
   background: linear-gradient(145deg, #202023, #111113);
-  border: 1px solid rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.16);
   box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
   overflow: hidden;
   touch-action: none;
   user-select: none;
 }
+
 .cells, .tiles {
   position: absolute;
-  inset: 12px;
+  inset: clamp(7px, 2.5%, 12px);
 }
 .cells {
   display: grid;
@@ -69,19 +99,20 @@ h1 span { display: block; }
 }
 .cell {
   background: linear-gradient(145deg, #29292c, #222225);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid rgba(210,210,220,.28);
+  border-radius: clamp(5px, 1.5vmin, 10px);
   box-shadow: inset 0 1px 2px rgba(255,255,255,.035);
 }
 .tiles { pointer-events: none; }
+
 .tile {
   position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: clamp(5px, 1.5vmin, 10px);
   will-change: transform;
-  transition: transform 230ms cubic-bezier(.2,.75,.25,1);
+  transition: transform 230ms cubic-bezier(.2,.75,.25,1), opacity 160ms ease;
   font-weight: 700;
   letter-spacing: -1.5px;
   color: #f7f7f8;
@@ -101,6 +132,7 @@ h1 span { display: block; }
 }
 .tile.spawn .face { animation: spawn .18s ease-out both; }
 .tile.merged .face { animation: merge .22s ease-out both; }
+
 @keyframes spawn {
   from { transform: scale(.45); opacity: .25; }
   to { transform: scale(1); opacity: 1; }
@@ -110,44 +142,63 @@ h1 span { display: block; }
   45% { filter: brightness(1.65); }
   100% { filter: brightness(1); }
 }
+
 .restart {
   display: block;
-  margin: 18px auto 0;
-  padding: 11px 30px;
+  margin: clamp(8px, 1.8vmin, 18px) auto 0;
+  padding: clamp(7px, 1.5vmin, 11px) clamp(20px, 4vw, 30px);
   border: 1px solid transparent;
   border-radius: 10px;
   background:
     linear-gradient(#080808,#080808) padding-box,
     linear-gradient(120deg,#777,#dedee2,#666) border-box;
   color: #eee;
-  font: 600 15px "Google Sans", sans-serif;
+  font: 600 clamp(12px, 1.8vmin, 15px) "Google Sans", sans-serif;
   cursor: pointer;
-  transition: background .2s, transform .2s;
 }
-.restart:hover { background:
-  linear-gradient(#191919,#191919) padding-box,
-  linear-gradient(120deg,#aaa,#fff,#888) border-box;
+.restart:hover {
+  background:
+    linear-gradient(#191919,#191919) padding-box,
+    linear-gradient(120deg,#aaa,#fff,#888) border-box;
 }
 .restart:active { transform: scale(.97); }
-.info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #929297;
-  font-size: 13px;
-  margin: 0 2px 12px;
-}
-.score { color: #eee; font-weight: 600; }
+
+/* Portrait phones and narrow screens */
 @media (max-width: 650px) {
-  body { padding: 24px 16px; align-items: flex-start; }
-  .layout { flex-direction: column; gap: 22px; }
+  .layout {
+    flex-direction: column;
+    gap: clamp(8px, 2.2vh, 18px);
+    justify-content: center;
+  }
   h1 {
     text-align: center;
-    font-size: clamp(38px, 12vw, 56px);
-    letter-spacing: -2px;
+    font-size: clamp(27px, min(8vw, 5.5vh), 43px);
+    letter-spacing: -.05em;
+    line-height: .9;
   }
-  .game { width: min(460px, 100%); }
+  h1 span { display: inline; }
+  h1 span + span::before { content: " "; }
+  .game {
+    --board-size: min(88vw, 67vh, 460px);
+    width: var(--board-size);
+    flex: 0 1 auto;
+  }
 }
+
+/* Very short screens */
+@media (max-height: 520px) {
+  .layout { gap: 18px; }
+  h1 { font-size: clamp(24px, 6vh, 38px); }
+  .game { --board-size: min(72vh, 46vw, 390px); }
+  .info { margin-bottom: 5px; }
+  .restart { margin-top: 6px; padding: 6px 18px; }
+}
+@media (max-width: 650px) and (max-height: 520px) {
+  .layout { gap: 5px; }
+  h1 { font-size: clamp(22px, 5vh, 30px); }
+  .game { --board-size: min(76vw, 65vh, 390px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tile { transition-duration: 1ms; }
   .tile .face { animation-duration: 1ms !important; }
@@ -205,8 +256,7 @@ h1 span { display: block; }
       1024: ["#dedee5","#fafaff",45],
       2048: ["#ededf2","#fff",52]
     };
-    if (styles[value]) return styles[value];
-    return ["#ededf2","#fff",58];
+    return styles[value] || ["#ededf2","#fff",58];
   }
 
   function getPosition(row, col) {
@@ -225,7 +275,7 @@ h1 span { display: block; }
     const digits = String(value).length;
     const ratio = digits === 1 ? .49 : digits === 2 ? .43 :
                   digits === 3 ? .35 : digits === 4 ? .28 : .22;
-    return Math.max(15, Math.min(46, width * ratio));
+    return Math.max(13, Math.min(46, width * ratio));
   }
 
   function createTile(id, value, row, col, spawn = false) {
@@ -322,11 +372,9 @@ h1 span { display: block; }
         if (j + 1 < line.length && line[j].value === line[j+1].value) {
           const winner = line[j];
           const loser = line[j+1];
-          const merged = {id: winner.id, value: winner.value * 2};
-          compact.push(merged);
-          mergedIds.push(winner.id);
-          mergedIds.push(loser.id);
-          gained += merged.value;
+          compact.push({id: winner.id, value: winner.value * 2});
+          mergedIds.push({winner: winner.id, loser: loser.id});
+          gained += winner.value * 2;
           j++;
         } else {
           compact.push(line[j]);
@@ -337,9 +385,7 @@ h1 span { display: block; }
         const r = direction === "up" ? j : direction === "down" ? 3-j : i;
         const c = direction === "left" ? j : direction === "right" ? 3-j : i;
         next[r][c] = compact[j];
-        const oldR = direction === "up" || direction === "down" ? grid.findIndex(row => row.includes(compact[j])) : i;
-        const oldC = direction === "left" || direction === "right" ? grid[i].indexOf(compact[j]) : i;
-        if (oldR !== r || oldC !== c) changed = true;
+        if (grid[r][c] !== compact[j]) changed = true;
       }
       if (compact.length !== line.length) changed = true;
     }
@@ -347,45 +393,35 @@ h1 span { display: block; }
     if (!changed) return;
 
     busy = true;
-    const losers = new Set();
-    for (const id of mergedIds) {
-      if (!next.some(row => row.some(item => item && item.id === id))) losers.add(id);
+    const losers = new Set(mergedIds.map(pair => pair.loser));
+
+    // Keep the disappearing tiles alive during their slide.
+    for (const pair of mergedIds) {
+      const loser = tileElements.get(pair.loser);
+      const winner = tileElements.get(pair.winner);
+      if (!loser || !winner) continue;
+      const destination = next.flat().find(item => item && item.id === pair.winner);
+      const row = next.findIndex(line => line.some(item => item && item.id === pair.winner));
+      const col = next[row].findIndex(item => item && item.id === pair.winner);
+      const pos = getPosition(row, col);
+      loser.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
+      loser.style.opacity = "0";
     }
 
-    // Move all existing tiles to their exact destinations.
     grid = next;
-    draw();
-
-    // Animate merged-away tiles toward their destination, then remove them.
-    for (const id of losers) {
-      const el = tileElements.get(id);
-      if (!el) continue;
-      const destination = next.flat().find(item => item && mergedIds.includes(item.id));
-      if (destination) {
-        const target = next.findIndex(row => row.includes(destination));
-        const col = next[target].indexOf(destination);
-        const pos = getPosition(target, col);
-        const parent = tilesEl.getBoundingClientRect();
-        const rect = el.getBoundingClientRect();
-        const x = rect.left - parent.left;
-        const y = rect.top - parent.top;
-        el.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
-        el.style.opacity = "0";
-      }
-    }
-
-    // Apply merge styling to surviving merged tiles.
-    for (const id of mergedIds) {
-      const el = tileElements.get(id);
-      if (el && next.some(row => row.some(item => item && item.id === id))) {
-        el.classList.add("merged");
-        const item = next.flat().find(x => x && x.id === id);
-        const row = next.findIndex(x => x.includes(item));
-        const col = next[row].indexOf(item);
+    for (const pair of mergedIds) {
+      const item = next.flat().find(x => x && x.id === pair.winner);
+      if (!item) continue;
+      const row = next.findIndex(line => line.some(x => x && x.id === pair.winner));
+      const col = next[row].findIndex(x => x && x.id === pair.winner);
+      const el = tileElements.get(pair.winner);
+      if (el) {
         updateTile(el, item.value, row, col);
+        el.classList.add("merged");
       }
     }
 
+    draw();
     score += gained;
     scoreEl.textContent = score;
 
