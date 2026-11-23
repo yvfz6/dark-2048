@@ -2,244 +2,135 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dark 2048</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; }
-
-:root {
-  --gap: clamp(4px, 1.7vmin, 10px);
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;height:100dvh;margin:0;
+  overflow:hidden;background:#000;
 }
-
-html, body {
-  width: 100%;
-  height: 100%;
-  height: 100dvh;
-  margin: 0;
-  overflow: hidden;
-  background: #000;
+body{
+  color:#eee;font-family:"Google Sans",Arial,sans-serif;
+  display:grid;place-items:center;
+  padding:env(safe-area-inset-top) 8px env(safe-area-inset-bottom);
 }
-
-body {
-  color: #f4f4f5;
-  font-family: "Google Sans", Arial, sans-serif;
-  padding:
-    max(5px, env(safe-area-inset-top))
-    max(7px, env(safe-area-inset-right))
-    max(5px, env(safe-area-inset-bottom))
-    max(7px, env(safe-area-inset-left));
+.layout{
+  width:100%;height:100%;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(14px,4vw,55px);
 }
-
-.layout {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 4vw, 55px);
+h1{
+  margin:0;font-size:clamp(32px,7vw,68px);
+  line-height:.94;letter-spacing:-.055em;font-weight:700;
+  flex:0 0 auto;
 }
-
-/* Desktop layout */
-h1 {
-  flex: 0 0 auto;
-  margin: 0;
-  font-size: clamp(32px, 7vw, 68px);
-  line-height: .94;
-  letter-spacing: -.055em;
-  font-weight: 700;
+h1 span{display:block}
+.game{
+  --board-size:min(58vw,76dvh,460px);
+  width:var(--board-size);min-width:0;flex:0 1 auto;
 }
-h1 span { display: block; }
-
-.game {
-  --board-size: min( min( min(58vw, 76dvh), 460px), 460px);
-  width: var(--board-size);
-  flex: 0 1 auto;
-  min-width: 0;
+.info{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:6px;color:#929292;
+  font-size:clamp(9px,1.6vmin,13px);
+  margin:0 2px clamp(5px,1.1vmin,10px);
 }
-
-.info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  color: #929297;
-  font-size: clamp(9px, 1.6vmin, 13px);
-  margin: 0 2px clamp(5px, 1.1vmin, 10px);
+.score{color:#eee;font-weight:600;white-space:nowrap}
+.board{
+  position:relative;width:100%;aspect-ratio:1;padding:2.5%;
+  border-radius:clamp(10px,2.5vmin,18px);
+  background:linear-gradient(145deg,#202020,#101010);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 18px 60px #000,inset 0 1px 0 #ffffff12;
+  overflow:hidden;touch-action:none;user-select:none;
 }
-.score {
-  color: #eee;
-  font-weight: 600;
-  white-space: nowrap;
+.cells,.tiles{position:absolute;inset:2.5%}
+.cells{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(4,1fr);gap:var(--gap,8px);
 }
-
-.board {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  padding: 2.5%;
-  border-radius: clamp(10px, 2.5vmin, 18px);
-  background: linear-gradient(145deg, #202023, #111113);
-  border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
-  overflow: hidden;
-  touch-action: none;
-  user-select: none;
+.cell{
+  background:linear-gradient(145deg,#292929,#222);
+  border:1px solid rgba(220,220,220,.3);
+  border-radius:clamp(4px,1.3vmin,10px);
 }
-
-.cells, .tiles {
-  position: absolute;
-  inset: 2.5%;
+.tiles{pointer-events:none}
+.tile{
+  position:absolute;left:0;top:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:clamp(4px,1.3vmin,10px);
+  will-change:transform,opacity;
+  transition:transform 220ms cubic-bezier(.35,.05,.2,1);
+  font-weight:700;letter-spacing:-1.5px;color:#fff;
 }
-.cells {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  gap: var(--gap);
+.face{
+  width:100%;height:100%;display:flex;
+  align-items:center;justify-content:center;
+  border-radius:inherit;
+  background:var(--tile-bg,#555);
+  border:1px solid var(--tile-border,#999);
+  box-shadow:0 0 var(--glow,8px) var(--glow-color,#ffffff20),
+             inset 0 1px 0 #ffffff22;
 }
-.cell {
-  background: linear-gradient(145deg, #29292c, #222225);
-  border: 1px solid rgba(210,210,220,.28);
-  border-radius: clamp(4px, 1.3vmin, 10px);
-  box-shadow: inset 0 1px 2px rgba(255,255,255,.035);
+.tile.spawn .face{animation:spawn .18s ease-out both}
+.tile.merged .face{animation:mergeFlash .2s ease-out both}
+@keyframes spawn{
+  from{transform:scale(.45);opacity:.2}
+  to{transform:scale(1);opacity:1}
 }
-.tiles { pointer-events: none; }
-
-.tile {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: clamp(4px, 1.3vmin, 10px);
-  will-change: transform;
-  transition: transform 230ms cubic-bezier(.2,.75,.25,1), opacity 160ms ease;
-  font-weight: 700;
-  letter-spacing: -1.5px;
-  color: #f7f7f8;
-  text-shadow: 0 1px 8px rgba(255,255,255,.12);
+@keyframes mergeFlash{
+  0%{filter:brightness(1)}
+  50%{filter:brightness(1.35)}
+  100%{filter:brightness(1)}
 }
-.tile .face {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: inherit;
-  background: var(--tile-bg, #555);
-  border: 1px solid var(--tile-border, rgba(255,255,255,.2));
-  box-shadow: 0 0 var(--glow, 8px) var(--glow-color, rgba(255,255,255,.08)),
-              inset 0 1px 0 rgba(255,255,255,.12);
+.restart{
+  display:block;margin:clamp(6px,1.5vmin,16px) auto 0;
+  padding:clamp(6px,1.3vmin,11px) clamp(18px,4vw,30px);
+  border:1px solid transparent;border-radius:10px;
+  background:linear-gradient(#080808,#080808) padding-box,
+    linear-gradient(120deg,#666,#ddd,#777) border-box;
+  color:#eee;font:600 clamp(11px,1.8vmin,15px) "Google Sans",sans-serif;
+  cursor:pointer;
 }
-.tile.spawn .face { animation: spawn .18s ease-out both; }
-.tile.merged .face { animation: merge .22s ease-out both; }
-
-@keyframes spawn {
-  from { transform: scale(.45); opacity: .25; }
-  to { transform: scale(1); opacity: 1; }
-}
-@keyframes merge {
-  0% { filter: brightness(1); }
-  45% { filter: brightness(1.65); }
-  100% { filter: brightness(1); }
-}
-
-.restart {
-  display: block;
-  margin: clamp(6px, 1.5vmin, 16px) auto 0;
-  padding: clamp(6px, 1.3vmin, 11px) clamp(18px, 4vw, 30px);
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background:
-    linear-gradient(#080808,#080808) padding-box,
-    linear-gradient(120deg,#777,#dedee2,#666) border-box;
-  color: #eee;
-  font: 600 clamp(11px, 1.8vmin, 15px) "Google Sans", sans-serif;
-  cursor: pointer;
-}
-.restart:hover {
-  background:
-    linear-gradient(#191919,#191919) padding-box,
-    linear-gradient(120deg,#aaa,#fff,#888) border-box;
-}
-.restart:active { transform: scale(.97); }
-
-/*
-  Mobile and tablet portrait:
-  Fit the title, info, square board and button inside the viewport.
-*/
-@media (max-width: 900px) {
-  .layout {
-    flex-direction: column;
-    gap: clamp(4px, 1.2dvh, 12px);
-    justify-content: center;
+.restart:active{transform:scale(.97)}
+@media(max-width:900px){
+  .layout{flex-direction:column;gap:clamp(4px,1.2dvh,12px)}
+  h1{
+    font-size:clamp(22px,min(7vw,4.8dvh),43px);
+    line-height:.88;letter-spacing:-.05em;text-align:center;
   }
-
-  h1 {
-    font-size: clamp(22px, min(7vw, 4.8dvh), 43px);
-    line-height: .88;
-    letter-spacing: -.05em;
-    text-align: center;
-  }
-
-  h1 span { display: inline; }
-  h1 span + span::before { content: " "; }
-
-  .game {
-    /*
-      Reserve space for:
-      title, info row, button, margins and safe areas.
-      Board uses whichever limit is smaller.
-    */
-    --board-size: min(
-      92vw,
-      92dvh,
-      460px,
-      calc(100dvh - 150px)
-    );
-    width: var(--board-size);
-    flex: 0 1 auto;
+  h1 span{display:inline}
+  h1 span+span:before{content:" "}
+  .game{
+    --board-size:min(92vw,92dvh,460px,calc(100dvh - 150px));
+    width:var(--board-size);
   }
 }
-
-/* Extra compact portrait screens */
-@media (max-width: 900px) and (max-height: 650px) {
-  .layout { gap: 3px; }
-  h1 { font-size: clamp(19px, 4.2dvh, 29px); }
-  .game {
-    --board-size: min(88vw, 78dvh, 390px, calc(100dvh - 105px));
-  }
-  .info { margin-bottom: 4px; }
-  .restart { margin-top: 5px; padding: 5px 16px; }
+@media(max-width:900px) and (max-height:650px){
+  .layout{gap:3px}
+  h1{font-size:clamp(19px,4.2dvh,29px)}
+  .game{--board-size:min(88vw,78dvh,390px,calc(100dvh - 105px))}
+  .info{margin-bottom:4px}
+  .restart{margin-top:5px;padding:5px 16px}
 }
-
-/* Landscape phones and short tablets */
-@media (max-height: 500px) {
-  .layout {
-    flex-direction: row;
-    gap: 16px;
-  }
-  h1 {
-    font-size: clamp(22px, 8vh, 40px);
-  }
-  .game {
-    --board-size: min(78vh, 55vw, 390px);
-  }
-  .info { margin-bottom: 4px; }
-  .restart { margin-top: 5px; padding: 5px 16px; }
+@media(max-height:500px){
+  .layout{flex-direction:row;gap:16px}
+  h1{font-size:clamp(22px,8vh,40px)}
+  .game{--board-size:min(78vh,55vw,390px)}
+  .info{margin-bottom:4px}
+  .restart{margin-top:5px;padding:5px 16px}
 }
-
-/* Tiny landscape devices */
-@media (max-height: 380px) {
-  .game { --board-size: min(72vh, 50vw, 320px); }
-  h1 { font-size: 22px; }
+@media(max-height:380px){
+  .game{--board-size:min(72vh,50vw,320px)}
+  h1{font-size:22px}
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .tile { transition-duration: 1ms; }
-  .tile .face { animation-duration: 1ms !important; }
+@media(prefers-reduced-motion:reduce){
+  .tile{transition-duration:1ms}
+  .tile .face{animation-duration:1ms!important}
 }
 </style>
 </head>
@@ -251,275 +142,320 @@ h1 span { display: block; }
       <span>Join the tiles. Reach 2048.</span>
       <span class="score">Score: <b id="score">0</b></span>
     </div>
-    <div class="board" id="board" aria-label="2048 game board">
+    <div class="board" id="board">
       <div class="cells" id="cells"></div>
       <div class="tiles" id="tiles"></div>
     </div>
     <button class="restart" id="restart">Restart</button>
   </section>
 </main>
-
 <script>
-(() => {
-  const SIZE = 4;
-  const board = document.getElementById("board");
-  const cellsEl = document.getElementById("cells");
-  const tilesEl = document.getElementById("tiles");
-  const scoreEl = document.getElementById("score");
+(()=>{
+  const N=4;
+  const board=document.getElementById("board");
+  const cellsEl=document.getElementById("cells");
+  const tilesEl=document.getElementById("tiles");
+  const scoreEl=document.getElementById("score");
+  let grid,score=0,busy=false,nextId=0;
+  const elements=new Map();
+  const DURATION=240;
 
-  let grid, score, busy = false, tileId = 0;
-  let tileElements = new Map();
-
-  for (let i = 0; i < 16; i++) {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+  for(let i=0;i<16;i++){
+    const cell=document.createElement("div");
+    cell.className="cell";
     cellsEl.appendChild(cell);
   }
 
-  function emptyGrid() {
-    return Array.from({length: SIZE}, () => Array(SIZE).fill(0));
-  }
+  const emptyGrid=()=>Array.from({length:N},()=>Array(N).fill(null));
 
-  function colorFor(value) {
-    const styles = {
-      2:    ["#454548","#77777d",8],
-      4:    ["#55555a","#85858c",10],
-      8:    ["#68686e","#a0a0a8",13],
-      16:   ["#77777f","#b1b1ba",16],
-      32:   ["#898992","#c4c4cd",20],
-      64:   ["#9b9ba5","#d0d0d9",24],
-      128:  ["#b0b0ba","#dedee6",29],
-      256:  ["#c0c0ca","#e9e9ef",34],
-      512:  ["#d0d0d8","#f1f1f5",39],
-      1024: ["#dedee5","#fafaff",45],
-      2048: ["#ededf2","#fff",52]
+  function palette(v){
+    const p={
+      2:["#454545","#777",7],
+      4:["#555","#888",9],
+      8:["#666","#999",12],
+      16:["#777","#aaa",15],
+      32:["#888","#bbb",18],
+      64:["#999","#ccc",22],
+      128:["#aaa","#d0d0d0",26],
+      256:["#bbb","#ddd",30],
+      512:["#ccc","#e5e5e5",34],
+      1024:["#d8d8d8","#eee",39],
+      2048:["#eee","#fff",45]
     };
-    return styles[value] || ["#ededf2","#fff",58];
+    return p[v]||["#eee","#fff",50];
   }
 
-  function getPosition(row, col) {
-    const cell = cellsEl.children[row * SIZE + col];
-    const parent = tilesEl.getBoundingClientRect();
-    const rect = cell.getBoundingClientRect();
+  function position(r,c){
+    const cell=cellsEl.children[r*N+c];
+    const layer=tilesEl.getBoundingClientRect();
+    const rect=cell.getBoundingClientRect();
     return {
-      x: rect.left - parent.left,
-      y: rect.top - parent.top,
-      width: rect.width,
-      height: rect.height
+      x:rect.left-layer.left,y:rect.top-layer.top,
+      w:rect.width,h:rect.height
     };
   }
 
-  function fontSize(value, width) {
-    const digits = String(value).length;
-    const ratio = digits === 1 ? .49 : digits === 2 ? .43 :
-                  digits === 3 ? .35 : digits === 4 ? .28 : .22;
-    return Math.max(13, Math.min(46, width * ratio));
+  function fontSize(v,w){
+    const d=String(v).length;
+    const ratio=d===1?.51:d===2?.45:d===3?.37:d===4?.30:.23;
+    return Math.max(12,Math.min(46,w*ratio));
   }
 
-  function createTile(id, value, row, col, spawn = false) {
-    const tile = document.createElement("div");
-    tile.className = "tile" + (spawn ? " spawn" : "");
-    tile.dataset.id = id;
-    const face = document.createElement("div");
-    face.className = "face";
-    tile.appendChild(face);
-    tilesEl.appendChild(tile);
-    tileElements.set(id, tile);
-    updateTile(tile, value, row, col);
-    return tile;
+  function place(el,r,c){
+    const p=position(r,c);
+    el.style.width=p.w+"px";
+    el.style.height=p.h+"px";
+    el.style.transform=`translate3d(${p.x}px,${p.y}px,0)`;
   }
 
-  function updateTile(tile, value, row, col) {
-    const pos = getPosition(row, col);
-    const [bg, border, glow] = colorFor(value);
-    tile.style.width = pos.width + "px";
-    tile.style.height = pos.height + "px";
-    tile.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
-    tile.style.fontSize = fontSize(value, pos.width) + "px";
-    tile.style.setProperty("--tile-bg", bg);
-    tile.style.setProperty("--tile-border", border);
-    tile.style.setProperty("--glow", glow + "px");
-    tile.style.setProperty("--glow-color", `rgba(235,235,255,${Math.min(.32, .09 + glow / 220)})`);
-    tile.firstChild.textContent = value;
+  function styleTile(el,v,r,c){
+    const p=position(r,c);
+    const [bg,border,glow]=palette(v);
+    el.style.width=p.w+"px";
+    el.style.height=p.h+"px";
+    el.style.fontSize=fontSize(v,p.w)+"px";
+    el.style.setProperty("--tile-bg",bg);
+    el.style.setProperty("--tile-border",border);
+    el.style.setProperty("--glow",glow+"px");
+    el.style.setProperty("--glow-color",`rgba(235,235,235,${Math.min(.32,.08+glow/200)})`);
+    el.querySelector(".face").textContent=v;
+    place(el,r,c);
   }
 
-  function draw() {
-    const seen = new Set();
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const item = grid[r][c];
-        if (!item) continue;
-        seen.add(item.id);
-        let el = tileElements.get(item.id);
-        if (!el) el = createTile(item.id, item.value, r, c);
-        else updateTile(el, item.value, r, c);
-      }
+  function createTile(item,r,c,spawn=false){
+    const el=document.createElement("div");
+    el.className="tile"+(spawn?" spawn":"");
+    el.dataset.id=item.id;
+    const face=document.createElement("div");
+    face.className="face";
+    el.appendChild(face);
+    tilesEl.appendChild(el);
+    elements.set(item.id,el);
+    styleTile(el,item.value,r,c);
+    return el;
+  }
+
+  function draw(){
+    const present=new Set();
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const item=grid[r][c];
+      if(!item)continue;
+      present.add(item.id);
+      let el=elements.get(item.id);
+      if(!el)el=createTile(item,r,c);
+      else styleTile(el,item.value,r,c);
     }
-    for (const [id, el] of tileElements) {
-      if (!seen.has(id)) {
+    for(const [id,el] of elements){
+      if(!present.has(id)&&!el.classList.contains("disappearing")){
         el.remove();
-        tileElements.delete(id);
+        elements.delete(id);
       }
     }
   }
 
-  function spawnTile() {
-    const empty = [];
-    for (let r = 0; r < SIZE; r++)
-      for (let c = 0; c < SIZE; c++)
-        if (!grid[r][c]) empty.push([r,c]);
-    if (!empty.length) return;
-    const [r,c] = empty[Math.floor(Math.random() * empty.length)];
-    const value = Math.random() < .9 ? 2 : 4;
-    const item = {id: ++tileId, value};
-    grid[r][c] = item;
-    createTile(item.id, item.value, r, c, true);
+  function spawn(){
+    const empty=[];
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++)
+      if(!grid[r][c])empty.push([r,c]);
+    if(!empty.length)return;
+    const [r,c]=empty[Math.floor(Math.random()*empty.length)];
+    const item={id:++nextId,value:Math.random()<.9?2:4};
+    grid[r][c]=item;
+    createTile(item,r,c,true);
   }
 
-  function start() {
-    grid = emptyGrid();
-    score = 0;
-    busy = false;
-    tileId = 0;
-    tileElements.forEach(el => el.remove());
-    tileElements.clear();
-    scoreEl.textContent = "0";
-    spawnTile();
-    spawnTile();
-    draw();
+  function start(){
+    grid=emptyGrid();score=0;busy=false;nextId=0;
+    for(const el of elements.values())el.remove();
+    elements.clear();
+    scoreEl.textContent="0";
+    spawn();spawn();draw();
   }
 
-  function move(direction) {
-    if (busy) return;
-    const next = emptyGrid();
-    let changed = false;
-    let gained = 0;
-    const mergedIds = [];
-
-    for (let i = 0; i < SIZE; i++) {
-      let line = [];
-      for (let j = 0; j < SIZE; j++) {
-        const r = direction === "up" ? j : direction === "down" ? 3-j : i;
-        const c = direction === "left" ? j : direction === "right" ? 3-j : i;
-        const item = grid[r][c];
-        if (item) line.push(item);
-      }
-
-      const compact = [];
-      for (let j = 0; j < line.length; j++) {
-        if (j + 1 < line.length && line[j].value === line[j+1].value) {
-          const winner = line[j];
-          const loser = line[j+1];
-          compact.push({id: winner.id, value: winner.value * 2});
-          mergedIds.push({winner: winner.id, loser: loser.id});
-          gained += winner.value * 2;
-          j++;
-        } else {
-          compact.push(line[j]);
-        }
-      }
-
-      for (let j = 0; j < compact.length; j++) {
-        const r = direction === "up" ? j : direction === "down" ? 3-j : i;
-        const c = direction === "left" ? j : direction === "right" ? 3-j : i;
-        next[r][c] = compact[j];
-        if (grid[r][c] !== compact[j]) changed = true;
-      }
-      if (compact.length !== line.length) changed = true;
-    }
-
-    if (!changed) return;
-
-    busy = true;
-    const losers = new Set(mergedIds.map(pair => pair.loser));
-
-    for (const pair of mergedIds) {
-      const loser = tileElements.get(pair.loser);
-      if (!loser) continue;
-      const row = next.findIndex(line => line.some(item => item && item.id === pair.winner));
-      const col = next[row].findIndex(item => item && item.id === pair.winner);
-      const pos = getPosition(row, col);
-      loser.style.transform = `translate3d(${pos.x}px,${pos.y}px,0)`;
-      loser.style.opacity = "0";
-    }
-
-    grid = next;
-    draw();
-
-    for (const pair of mergedIds) {
-      const row = next.findIndex(line => line.some(item => item && item.id === pair.winner));
-      const col = next[row].findIndex(item => item && item.id === pair.winner);
-      const item = next[row][col];
-      const el = tileElements.get(pair.winner);
-      if (el) {
-        updateTile(el, item.value, row, col);
-        el.classList.add("merged");
-      }
-    }
-
-    score += gained;
-    scoreEl.textContent = score;
-
-    setTimeout(() => {
-      for (const id of losers) {
-        const el = tileElements.get(id);
-        if (el) el.remove();
-        tileElements.delete(id);
-      }
-      spawnTile();
-      draw();
-      busy = false;
-      if (!canMove()) {
-        setTimeout(() => alert("Game over! Your score: " + score), 100);
-      }
-    }, 245);
-  }
-
-  function canMove() {
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        if (!grid[r][c]) return true;
-        if (r < 3 && grid[r][c].value === grid[r+1][c].value) return true;
-        if (c < 3 && grid[r][c].value === grid[r][c+1].value) return true;
-      }
+  function canMove(){
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      if(!grid[r][c])return true;
+      if(r<3&&grid[r][c].value===grid[r+1][c].value)return true;
+      if(c<3&&grid[r][c].value===grid[r][c+1].value)return true;
     }
     return false;
   }
 
-  document.addEventListener("keydown", e => {
-    const keys = {
-      ArrowUp: "up", w: "up", W: "up",
-      ArrowDown: "down", s: "down", S: "down",
-      ArrowLeft: "left", a: "left", A: "left",
-      ArrowRight: "right", d: "right", D: "right"
+  function move(dir){
+    if(busy)return;
+    const next=emptyGrid();
+    const merges=[];
+    let changed=false,gained=0;
+
+    for(let lineIndex=0;lineIndex<N;lineIndex++){
+      const coords=[];
+      for(let k=0;k<N;k++){
+        let r,c;
+        if(dir==="left"){r=lineIndex;c=k}
+        if(dir==="right"){r=lineIndex;c=N-1-k}
+        if(dir==="up"){r=k;c=lineIndex}
+        if(dir==="down"){r=N-1-k;c=lineIndex}
+        coords.push([r,c]);
+      }
+
+      const items=coords.map(([r,c])=>grid[r][c]).filter(Boolean);
+      const output=[];
+      for(let k=0;k<items.length;k++){
+        const a=items[k],b=items[k+1];
+        if(b&&a.value===b.value){
+          const merged={id:a.id,value:a.value*2};
+          output.push(merged);
+          merges.push({winner:a.id,loser:b.id,value:merged.value});
+          gained+=merged.value;k++;
+        }else output.push(a);
+      }
+
+      output.forEach((item,k)=>{
+        const [r,c]=coords[k];
+        next[r][c]=item;
+        const old=grid[r][c];
+        if(!old||old.id!==item.id||old.value!==item.value)changed=true;
+      });
+      if(output.length!==items.length)changed=true;
+    }
+    if(!changed)return;
+
+    busy=true;
+
+    // Record each tile's exact old position before changing the grid.
+    const oldRects=new Map();
+    for(const [id,el] of elements){
+      oldRects.set(id,el.getBoundingClientRect());
+      el.style.transition="none";
+    }
+
+    // Force the browser to commit the frozen positions.
+    void tilesEl.offsetWidth;
+
+    // Identify each merge's exact destination.
+    const mergeTargets=new Map();
+    for(const m of merges){
+      let target=null;
+      for(let r=0;r<N;r++)for(let c=0;c<N;c++)
+        if(next[r][c]&&next[r][c].id===m.winner)target=[r,c];
+      mergeTargets.set(m.loser,target);
+    }
+
+    grid=next;
+
+    // Move all surviving tiles from their original position to destination.
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const item=grid[r][c];
+      if(!item)continue;
+      let el=elements.get(item.id);
+      if(!el)el=createTile(item,r,c);
+      const old=oldRects.get(item.id);
+      const p=position(r,c);
+      const layer=tilesEl.getBoundingClientRect();
+
+      el.style.width=p.w+"px";
+      el.style.height=p.h+"px";
+      const oldX=old?old.left-layer.left:p.x;
+      const oldY=old?old.top-layer.top:p.y;
+      el.style.transform=`translate3d(${oldX}px,${oldY}px,0)`;
+      el.style.transition="none";
+      styleTile(el,item.value,r,c);
+      // Restore old position after styleTile set the destination.
+      el.style.transition="none";
+      el.style.transform=`translate3d(${oldX}px,${oldY}px,0)`;
+    }
+
+    // Create disappearing merge partners at their original locations.
+    for(const m of merges){
+      const target=mergeTargets.get(m.loser);
+      const old=oldRects.get(m.loser);
+      if(!target||!old)continue;
+      const [r,c]=target;
+      const p=position(r,c);
+      const layer=tilesEl.getBoundingClientRect();
+      const loser=elements.get(m.loser);
+      if(!loser)continue;
+      loser.classList.add("disappearing");
+      loser.style.width=p.w+"px";
+      loser.style.height=p.h+"px";
+      loser.style.opacity="1";
+      loser.style.transform=`translate3d(${old.left-layer.left}px,${old.top-layer.top}px,0)`;
+    }
+
+    // Force starting transforms to be rendered, then animate.
+    void tilesEl.offsetWidth;
+
+    requestAnimationFrame(()=>{
+      for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+        const item=grid[r][c];
+        if(!item)continue;
+        const el=elements.get(item.id);
+        if(!el)continue;
+        const p=position(r,c);
+        el.style.transition=`transform ${DURATION}ms cubic-bezier(.22,.65,.25,1)`;
+        el.style.transform=`translate3d(${p.x}px,${p.y}px,0)`;
+      }
+
+      for(const m of merges){
+        const loser=elements.get(m.loser);
+        const target=mergeTargets.get(m.loser);
+        if(!loser||!target)continue;
+        const p=position(target[0],target[1]);
+        loser.style.transition=`transform ${DURATION}ms cubic-bezier(.22,.65,.25,1), opacity 100ms ease ${DURATION-90}ms`;
+        loser.style.transform=`translate3d(${p.x}px,${p.y}px,0)`;
+        loser.style.opacity="0";
+      }
+    });
+
+    score+=gained;
+    scoreEl.textContent=score;
+
+    setTimeout(()=>{
+      for(const m of merges){
+        const loser=elements.get(m.loser);
+        if(loser)loser.remove();
+        elements.delete(m.loser);
+        const winner=elements.get(m.winner);
+        if(winner){
+          winner.classList.add("merged");
+          const r=grid.findIndex(row=>row.some(x=>x&&x.id===m.winner));
+          const c=grid[r].findIndex(x=>x&&x.id===m.winner);
+          styleTile(winner,m.value,r,c);
+        }
+      }
+      draw();
+      spawn();
+      busy=false;
+      if(!canMove())setTimeout(()=>alert("Game over! Your score: "+score),80);
+    },DURATION+25);
+  }
+
+  document.addEventListener("keydown",e=>{
+    const keys={
+      ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",
+      w:"up",W:"up",s:"down",S:"down",a:"left",A:"left",d:"right",D:"right"
     };
-    if (keys[e.key]) {
+    if(keys[e.key]){
       e.preventDefault();
       move(keys[e.key]);
     }
   });
 
-  let startX = 0, startY = 0;
-  board.addEventListener("pointerdown", e => {
-    startX = e.clientX;
-    startY = e.clientY;
+  let sx=0,sy=0;
+  board.addEventListener("pointerdown",e=>{
+    sx=e.clientX;sy=e.clientY;
     board.setPointerCapture(e.pointerId);
   });
-  board.addEventListener("pointerup", e => {
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
-    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? "right" : "left");
-    else move(dy > 0 ? "down" : "up");
+  board.addEventListener("pointerup",e=>{
+    const dx=e.clientX-sx,dy=e.clientY-sy;
+    if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;
+    move(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"));
   });
 
-  document.getElementById("restart").addEventListener("click", start);
-
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(() => {
-      if (!busy) draw();
-    }).observe(board);
-  }
+  document.getElementById("restart").addEventListener("click",start);
+  new ResizeObserver(()=>{
+    if(!busy)draw();
+  }).observe(board);
 
   start();
 })();
